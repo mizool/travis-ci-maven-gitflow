@@ -1,0 +1,8 @@
+== About
+This repository contains scripts and guidelines on how to deploy maven projects to the
+https://search.maven.org/[Maven Central Repository] via the
+http://central.sonatype.org/pages/ossrh-guide.html[Sonatype OSS Repository Hosting].
+
+The provided scripts assume that your repository uses the
+http://nvie.com/posts/a-successful-git-branching-model/[Gitflow branching model] by
+http://nvie.com/about/[Vincent Driessen].
