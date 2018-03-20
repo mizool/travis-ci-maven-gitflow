@@ -118,7 +118,7 @@ http://nvie.com/about/[Vincent Driessen].
 language: java
 
 install: true
-script: "wget -q -O - https://github.com/mizool/travis-ci-maven-gitflow/blob/feature/create-initial-files-and-documentation/build.sh | bash"
+script: "https://raw.githubusercontent.com/mizool/travis-ci-maven-gitflow/feature/create-initial-files-and-documentation/build.sh | bash"
 
 cache:
   directories:
