@@ -1,6 +1,6 @@
 == About
 This repository contains scripts and guidelines on how to deploy maven projects to the
-https://search.maven.org/[Maven Central Repository] via the
+https://search.maven.org/[Maven Central Repository] via https://travis-ci.org/[Travis CI] and the
 http://central.sonatype.org/pages/ossrh-guide.html[Sonatype OSS Repository Hosting].
 
 The provided scripts assume that your repository uses the
