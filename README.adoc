@@ -6,3 +6,143 @@ http://central.sonatype.org/pages/ossrh-guide.html[Sonatype OSS Repository Hosti
 The provided scripts assume that your repository uses the
 http://nvie.com/posts/a-successful-git-branching-model/[Gitflow branching model] by
 http://nvie.com/about/[Vincent Driessen].
+
+== Setting up your project
+. Obtain an OSSRH account following http://central.sonatype.org/pages/ossrh-guide.html#initial-setup[these guidelines].
+. Add and fill the following sections in your project's `pom.xml`:
++
+[source,xml]
+----
+<project>
+    ...
+    <name>${project.groupId}:${project.artifactId}</name>
+    <description>CHANGEME</description>
+    <url>https://github.com/CHANGEME</url>
+
+    <licenses>
+        <license>
+            <name>CHANGEME</name>
+            <url>CHANGEME</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <developers>
+        <developer>
+            <name>CHANGEME</name>
+            <email>CHANGEME</email>
+        </developer>
+        ...for each developer that contributes...
+    </developers>
+
+    <scm>
+        <connection>scm:git:git://github.com/CHANGEME.git</connection>
+        <developerConnection>scm:git:ssh://github.com/CHANGEME.git</developerConnection>
+        <url>https://github.com/CHANGEME</url>
+    </scm>
+
+    <distributionManagement>
+        <snapshotRepository>
+            <id>ossrh</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+        </snapshotRepository>
+    </distributionManagement>
+    ...
+    <build>
+        ...
+        <pluginManagment>
+            <plugins>
+                ....
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-gpg-plugin</artifactId>
+                    <version>1.6</version>
+                    <executions>
+                        <execution>
+                            <goals>
+                                <goal>sign</goal>
+                            </goals>
+                            <phase>verify</phase>
+                        </execution>
+                    </executions>
+                </plugin>
+                <plugin>
+                    <groupId>org.sonatype.plugins</groupId>
+                    <artifactId>nexus-staging-maven-plugin</artifactId>
+                    <version>1.6.8</version>
+                    <extensions>true</extensions>
+                    <configuration>
+                        <serverId>ossrh</serverId>
+                        <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+                        <autoReleaseAfterClose>true</autoReleaseAfterClose>
+                    </configuration>
+                </plugin>
+                ...
+            </plugins>
+        </pluginManagement>
+        ....
+        <plugins>
+            ...
+            <plugin>
+                <groupId>org.sonatype.plugins</groupId>
+                <artifactId>nexus-staging-maven-plugin</artifactId>
+            </plugin>
+            ...
+        </plugins>
+        ...
+    </build>
+    ...
+    <profiles>
+        ...
+        <profile>
+            <id>sign</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-gpg-plugin</artifactId>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        ...
+    </profiles>
+    ...
+</project>
+----
++
+. Place the following `.travis.yml` into the root of your repository.
++
+[source,yml]
+----
+language: java
+
+install: true
+script: "wget -q -O - https://github.com/mizool/travis-ci-maven-gitflow/blob/feature/create-initial-files-and-documentation/build.sh | bash"
+
+cache:
+  directories:
+  - "$HOME/.m2/repository"
+----
++
+. Place your `codesigning.asc.enc` into the root of your repository (see <<Creating a codesigning certificate>> if
+you need to create one first).
+. Activate the build for your repository on https://travis-ci.org/[Travis CI].
+. Log in to the https://oss.sonatype.org/[OSSRH Nexus Repository Manager], navigate to `Profile` -> `User Token` and
+take note of your user token codes
+. Set the required environment variables in Travis:
++
+[source,text]
+----
+OSSRH_TOKEN_NAME = the name from the OSSRH Nexus Repository Manager user token
+OSSRH_TOKEN_PASSWORD = the password from the OSSRH Nexus Repository Manager user token
+GPG_KEY_NAME = the name of your codesigning key
+GPG_PASSPHRASE = the passphrase of your codesiging key
+CODESIGNING_AES_PASSWORD = the password used to encrypt the codesiging certificate
+----
+
+== Performing a release
+_TODO_
+
+== Creating a codesigning certificate
+_TODO_
