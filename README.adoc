@@ -1,0 +1,241 @@
+== About
+This repository contains scripts and guidelines on how to deploy maven projects to the
+https://search.maven.org/[Maven Central Repository] via https://travis-ci.org/[Travis CI] and the
+http://central.sonatype.org/pages/ossrh-guide.html[Sonatype OSS Repository Hosting].
+
+The provided scripts assume that your repository uses the
+http://nvie.com/posts/a-successful-git-branching-model/[Gitflow branching model] by
+http://nvie.com/about/[Vincent Driessen].
+
+== Setting up your project
+. Obtain an OSSRH account following http://central.sonatype.org/pages/ossrh-guide.html#initial-setup[these guidelines].
+. Add and complete the following sections in your project's `pom.xml`:
++
+[source,xml]
+----
+<project>
+    ...
+    <name>${project.groupId}:${project.artifactId}</name>
+    <description>CHANGEME</description>
+    <url>https://github.com/CHANGEME</url>
+
+    <licenses>
+        <license>
+            <name>CHANGEME</name>
+            <url>CHANGEME</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <developers>
+        <developer>
+            <name>CHANGEME</name>
+            <email>CHANGEME</email>
+        </developer>
+        ...for each developer that contributes...
+    </developers>
+
+    <scm>
+        <connection>scm:git:git://github.com/CHANGEME.git</connection>
+        <developerConnection>scm:git:ssh://github.com/CHANGEME.git</developerConnection>
+        <url>https://github.com/CHANGEME</url>
+    </scm>
+
+    <distributionManagement>
+        <snapshotRepository>
+            <id>ossrh</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+        </snapshotRepository>
+    </distributionManagement>
+    ...
+    <build>
+        ...
+        <pluginManagment>
+            <plugins>
+                ....
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-gpg-plugin</artifactId>
+                    <version>1.6</version>
+                    <executions>
+                        <execution>
+                            <goals>
+                                <goal>sign</goal>
+                            </goals>
+                            <phase>verify</phase>
+                        </execution>
+                    </executions>
+                </plugin>
+                <plugin>
+                    <groupId>org.sonatype.plugins</groupId>
+                    <artifactId>nexus-staging-maven-plugin</artifactId>
+                    <version>1.6.8</version>
+                    <extensions>true</extensions>
+                    <configuration>
+                        <serverId>ossrh</serverId>
+                        <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+                        <autoReleaseAfterClose>true</autoReleaseAfterClose>
+                    </configuration>
+                </plugin>
+                ...
+            </plugins>
+        </pluginManagement>
+        ....
+        <plugins>
+            ...
+            <plugin>
+                <groupId>org.sonatype.plugins</groupId>
+                <artifactId>nexus-staging-maven-plugin</artifactId>
+            </plugin>
+            ...
+        </plugins>
+        ...
+    </build>
+    ...
+    <profiles>
+        ...
+        <profile>
+            <id>sign</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-gpg-plugin</artifactId>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        ...
+    </profiles>
+    ...
+</project>
+----
++
+. Paste the following into a `.travis.yml` in the root of your repository:
++
+[source,yml]
+----
+language: java
+
+install: true
+script: "https://raw.githubusercontent.com/mizool/travis-ci-maven-gitflow/master/build.sh | bash"
+
+cache:
+  directories:
+  - "$HOME/.m2/repository"
+----
++
+. Place your `codesigning.asc.enc` into the root of your repository (see <<Creating a codesigning certificate>> if
+you need to create one first).
+. Optional: Add the following paragraph to your `README.adoc`:
++
+[source,asciidoc]
+----
+== Continuous integration and deployment on Maven Central
+This project is built continuously by https://travis-ci.org/[Travis CI] using the scripts provided by https://github.com/mizool/travis-ci-maven-gitflow[Mizool's Travis CI Maven gitflow script repository].
+
+`-SNAPSHOT` versions on the `develop` branch are made available via the https://oss.sonatype.org/content/repositories/snapshots/[OSSRH snapshot repository].
+Releases are transferred to the https://search.maven.org[Maven Central Repository].
+
+Refer to https://github.com/mizool/travis-ci-maven-gitflow/blob/master/README.adoc#performing-a-release[this guide] on how to perform a release.
+----
++
+. Log in to the https://oss.sonatype.org/[OSSRH Nexus Repository Manager], navigate to `Profile` -> `User Token` and
+take note of your user token codes.
+. Activate the build for your repository on https://travis-ci.org/[Travis CI].
+. Set the required environment variables in Travis under `More options` -> `Settings`:
++
+[source,text]
+----
+OSSRH_TOKEN_NAME = the name from the OSSRH Nexus Repository Manager user token
+OSSRH_TOKEN_PASSWORD = the password from the OSSRH Nexus Repository Manager user token
+GPG_KEY_NAME = the name of your codesigning key
+GPG_PASSPHRASE = the passphrase of your codesiging key
+CODESIGNING_AES_PASSWORD = the password used to encrypt the codesiging certificate
+----
+
+== Performing a release
+To upload a release to central, the branch operations and maven artifact version changes have to be performed manually.
+Travis CI will then build and upload the release artifact to the staging repository from where it will ultimately be
+transferred to Maven Central.
+
+__Note: the commands below are intended for use on the Windows command line.__
+
+.Prepare environment variables in your shell
+[source,text]
+----
+set CURRENT_RELEASE_VERSION=
+set NEXT_DEVELOP_SNAPSHOT=
+----
+_These variables must be set both for starting and finishing the release._
+
+=== Starting the release process
+Take care that your develop branch does not contain any `-SNAPSHOT` dependencies.
+
+.Start the release
+[source,text]
+----
+:: check out the develop branch
+git fetch "origin"
+git checkout -B develop remotes/origin/develop --
+
+:: create release branch
+git branch release/%CURRENT_RELEASE_VERSION%
+
+:: update the versions on develop to the next -SNAPSHOT version
+call mvn versions:set -DgenerateBackupPoms=false -DnewVersion=%NEXT_DEVELOP_SNAPSHOT%
+git commit -a -m "[gitflow] updating poms for %NEXT_DEVELOP_SNAPSHOT% development"
+
+:: push the changes atomically
+git push --atomic origin develop release/%CURRENT_RELEASE_VERSION%
+----
+
+Wait for the https://travis-ci.org/[Travis] build for the `release/` branch to succeed, test and stabilize as needed.
+
+=== Finishing the release
+Take care that your release branch does not contain any `-SNAPSHOT` dependencies.
+
+.Finish the release
+[source,text]
+----
+:: checkout the release branch
+git fetch "origin"
+git checkout -B release/%CURRENT_RELEASE_VERSION% remotes/origin/release/%CURRENT_RELEASE_VERSION% --
+
+:: replace the -SNAPSHOT versions on the release branch with the release versions
+call mvn versions:set -DgenerateBackupPoms=false -DnewVersion=%CURRENT_RELEASE_VERSION%
+git commit -a -m "[gitflow] updating poms for branch 'release/%CURRENT_RELEASE_VERSION%' with non-snapshot versions"
+
+:: merge the release branch to master and create a tag
+git checkout -B master remotes/origin/master --
+git merge --no-ff -m "[gitflow] merging 'release/%CURRENT_RELEASE_VERSION%' into 'master'" release/%CURRENT_RELEASE_VERSION%
+git tag %CURRENT_RELEASE_VERSION%
+
+:: update the -SNAPSHOT versions on develop with the release version to avoid merge conflicts
+git checkout -B develop remotes/origin/develop --
+call mvn versions:set -DgenerateBackupPoms=false -DnewVersion=%CURRENT_RELEASE_VERSION%
+git commit -a -m "[gitflow] updating develop poms to master versions to avoid merge conflicts"
+
+:: merge master to develop
+git merge --no-ff -m "[gitflow] merging 'master' into 'develop'" master
+
+:: set the versions on develop back to the next -SNAPSHOT version
+call mvn versions:set -DgenerateBackupPoms=false -DnewVersion=%NEXT_DEVELOP_SNAPSHOT%
+git commit -a -m "[gitflow] updating develop poms back to pre merge state"
+
+:: push the changes atomically
+git push --atomic origin master develop refs/tags/%CURRENT_RELEASE_VERSION%
+
+:: delete the release branch
+git push origin --delete release/%CURRENT_RELEASE_VERSION%
+git branch -d release/%CURRENT_RELEASE_VERSION%
+----
+
+https://travis-ci.org/[Travis] will now start building the release on `master`.
+The artifact should appear on Central within an hour or so.
+If you are impatient and want to check whether the release made it to Central, be aware that the
+https://search.maven.org/[search engine] seems to have a larger lag.
+The direct repository URL of your artifact should be available much sooner.
+
+== Creating a codesigning certificate
+_TODO: Describe how to create a codesigning certificate._
