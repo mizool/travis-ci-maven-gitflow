@@ -117,7 +117,9 @@ http://nvie.com/about/[Vincent Driessen].
 ----
 language: java
 
+# As we don't need to install anything but the install phase is mandatory, we simply call the 'true' command.
 install: true
+
 script: "wget -q -O - https://raw.githubusercontent.com/mizool/travis-ci-maven-gitflow/master/build.sh | bash"
 
 cache:
