@@ -132,7 +132,7 @@ you need to create one first).
 [source,asciidoc]
 ----
 == Continuous integration and deployment on Maven Central
-This project is build continuously by https://travis-ci.org/[Travis CI] using the scripts provided by https://github.com/mizool/travis-ci-maven-gitflow[Mizool's Travis CI Maven gitflow script repository].
+This project is built continuously by https://travis-ci.org/[Travis CI] using the scripts provided by https://github.com/mizool/travis-ci-maven-gitflow[Mizool's Travis CI Maven gitflow script repository].
 
 `-SNAPSHOT` versions on the `develop` branch are made available via the https://oss.sonatype.org/content/repositories/snapshots/[OSSRH snapshot repository].
 Releases are transferred to the https://search.maven.org[Maven Central Repository].
