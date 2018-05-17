@@ -18,6 +18,18 @@
                 <gpg.keyname>${env.GPG_KEY_NAME}</gpg.keyname>
                 <gpg.passphrase>${env.GPG_PASSPHRASE}</gpg.passphrase>
             </properties>
+            <repositories>
+                <repository>
+                    <id>ossrh-snapshots</id>
+                    <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+                </repository>
+            </repositories>
+            <pluginRepositories>
+                <pluginRepository>
+                    <id>ossrh-snapshots</id>
+                    <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+                </pluginRepository>
+            </pluginRepositories>
         </profile>
     </profiles>
 </settings>
