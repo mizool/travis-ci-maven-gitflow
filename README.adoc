@@ -239,5 +239,85 @@ If you are impatient and want to check whether the release made it to Central, b
 https://search.maven.org/[search engine] seems to have a larger lag.
 The direct repository URL of your artifact should be available much sooner.
 
+== Performing a hotfix
+Hotfixes are essentially releases that are uploaded to central the same way normal releases are. The commands and manual
+steps however are slightly different.
+
+__Note: the commands below are intended for use on the Windows command line.__
+
+.Prepare environment variables in your shell
+[source,text]
+----
+set HOTFIX_VERSION=
+set CURRENT_DEVELOP_SNAPSHOT=
+----
+_These variables must be set both for starting and finishing the hotfix._
+
+=== Starting the hotfix process
+.Start the hotfix
+[source,text]
+----
+:: check out the master branch
+git fetch "origin"
+git checkout -B master remotes/origin/master --
+
+:: create and switch to the hotfix branch
+git checkout -b hotfix/%HOTFIX_VERSION%
+
+:: update the versions on the hotfix branch to a snapshot of the hotfix version
+call mvn versions:set -DgenerateBackupPoms=false -DnewVersion=%HOTFIX_VERSION%-SNAPSHOT
+git commit -a -m "[gitflow] updating poms for %HOTFIX_VERSION% branch with snapshot versions"
+
+:: push the hotfix branch
+git push origin hotfix/%HOTFIX_VERSION%
+----
+
+Perform any necessary changes on the hotfix branch, test and stabilize as needed. Push all changes and wait for the https://travis-ci.org/[Travis] build for the `hotfix/` branch to succeed.
+
+=== Finishing the hotfix
+Take care that your hotfix branch does not contain any `-SNAPSHOT` dependencies.
+
+.Finish the hotfix
+[source,text]
+----
+:: checkout the hotfix branch
+git fetch "origin"
+git checkout -B hotfix/%HOTFIX_VERSION% remotes/origin/hotfix/%HOTFIX_VERSION% --
+
+:: replace the -SNAPSHOT versions on the hotfix branch with the hotfix versions
+call mvn versions:set -DgenerateBackupPoms=false -DnewVersion=%HOTFIX_VERSION%
+git commit -a -m "[gitflow] updating poms for branch 'hotfix/%HOTFIX_VERSION%' with non-snapshot versions"
+
+:: merge the hotfix branch to master and create a tag
+git checkout -B master remotes/origin/master --
+git merge --no-ff -m "[gitflow] merging 'hotfix/%HOTFIX_VERSION%' into 'master'" hotfix/%HOTFIX_VERSION%
+git tag %HOTFIX_VERSION%
+
+:: update the -SNAPSHOT versions on develop with the hotfix version to avoid merge conflicts
+git checkout -B develop remotes/origin/develop --
+call mvn versions:set -DgenerateBackupPoms=false -DnewVersion=%HOTFIX_VERSION%
+git commit -a -m "[gitflow] updating develop poms to hotfix version to avoid merge conflicts"
+
+:: merge master to develop
+git merge --no-ff -m "[gitflow] merging 'master' into 'develop'" master
+
+:: set the versions on develop back to the next -SNAPSHOT version
+call mvn versions:set -DgenerateBackupPoms=false -DnewVersion=%CURRENT_DEVELOP_SNAPSHOT%
+git commit -a -m "[gitflow] updating develop poms back to pre merge state"
+
+:: push the changes atomically
+git push --atomic origin master develop refs/tags/%HOTFIX_VERSION%
+
+:: delete the release branch
+git push origin --delete hotfix/%HOTFIX_VERSION%
+git branch -d hotfix/%HOTFIX_VERSION%
+----
+
+https://travis-ci.org/[Travis] will now start building the hotfix on `master`.
+The artifact should appear on Central within an hour or so.
+If you are impatient and want to check whether the release made it to Central, be aware that the
+https://search.maven.org/[search engine] seems to have a larger lag.
+The direct repository URL of your artifact should be available much sooner.
+
 == Creating a codesigning certificate
 _TODO: Describe how to create a codesigning certificate._
