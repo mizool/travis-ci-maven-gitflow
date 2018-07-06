@@ -5,7 +5,21 @@ wget -q -O $HOME/.m2/toolchains.xml https://raw.githubusercontent.com/mizool/tra
 if [[ ( $TRAVIS_BRANCH = master || $TRAVIS_BRANCH = develop || $TRAVIS_BRANCH = release/* || $TRAVIS_BRANCH = hotfix/*) && $TRAVIS_PULL_REQUEST = false ]]; then
     openssl aes-256-cbc -in codesigning.asc.enc -out codesigning.asc -d -pass pass:$CODESIGNING_AES_PASSWORD
     gpg --batch --quiet --fast-import codesigning.asc
-    mvn -U deploy -DperformRelease=true -P sign
+
+    if [[ $TRAVIS_BRANCH = develop && -n "$SONAR_ORGANIZATION" ]]; then
+        mvn \
+            -U \
+            org.jacoco:jacoco-maven-plugin:0.7.9:prepare-agent \
+            deploy \
+            org.codehaus.mojo:sonar-maven-plugin:3.3.0.603:sonar \
+            -Dsonar.host.url=https://sonarcloud.io \
+            -Dsonar.organization=$SONAR_ORGANIZATION \
+            -Dsonar.login=$SONAR_LOGIN_TOKEN \
+            -DperformRelease=true \
+            -P sign
+    else
+        mvn -U deploy -DperformRelease=true -P sign
+    fi
 else
     mvn -U verify -DperformRelease=true
 fi
