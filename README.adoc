@@ -125,6 +125,9 @@ script: "wget -q -O - https://raw.githubusercontent.com/mizool/travis-ci-maven-g
 cache:
   directories:
   - "$HOME/.m2/repository"
+
+git:
+  depth: false
 ----
 +
 . Place your `codesigning.asc.enc` into the root of your repository (see <<Creating a codesigning certificate>> if
