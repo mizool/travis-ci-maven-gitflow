@@ -7,9 +7,21 @@ The provided scripts assume that your repository uses the
 http://nvie.com/posts/a-successful-git-branching-model/[Gitflow branching model] by
 http://nvie.com/about/[Vincent Driessen].
 
+ifdef::env-github[]
+:caution-caption: :fire:
+:important-caption: :exclamation:
+:note-caption: :paperclip:
+:tip-caption: :bulb:
+:warning-caption: :warning:
+endif::[]
+
 == Setting up your project
 . Obtain an OSSRH account following http://central.sonatype.org/pages/ossrh-guide.html#initial-setup[these guidelines].
 . Add and complete the following sections in your project's `pom.xml`:
++
+IMPORTANT: All of the specified elements are mandatory for distribution via OSSRH to work.
++
+NOTE: Take care to follow any additional requirements for your chosen license.
 +
 [source,xml]
 ----
