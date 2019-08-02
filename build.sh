@@ -3,9 +3,11 @@ wget -q -O $HOME/.m2/settings.xml https://raw.githubusercontent.com/mizool/travi
 wget -q -O $HOME/.m2/toolchains.xml https://raw.githubusercontent.com/mizool/travis-ci-maven-gitflow/master/toolchains.xml
 
 if [[ $TRAVIS_PULL_REQUEST = true ]]; then
+    echo [CI BUILD] Pull request  
 
     # PR builds without configured SonarCloud connection intentionally do nothing.
     if [[ -n "$SONAR_ORGANIZATION" ]]; then
+        echo [CI BUILD] Starting SonarCloud analysis
         mvn \
             -U \
             org.jacoco:jacoco-maven-plugin:0.7.9:prepare-agent \
@@ -14,6 +16,8 @@ if [[ $TRAVIS_PULL_REQUEST = true ]]; then
             -Dsonar.host.url=https://sonarcloud.io \
             -Dsonar.organization=$SONAR_ORGANIZATION \
             -Dsonar.login=$SONAR_LOGIN_TOKEN
+    else
+        echo [CI BUILD] SonarCloud not activated, nothing to do.
     fi
 
 elif [[ $TRAVIS_BRANCH = master || $TRAVIS_BRANCH = develop || $TRAVIS_BRANCH = release/* || $TRAVIS_BRANCH = hotfix/* ]]; then
@@ -21,10 +25,13 @@ elif [[ $TRAVIS_BRANCH = master || $TRAVIS_BRANCH = develop || $TRAVIS_BRANCH = 
     # If we get here, the current build is a regular build of a long-living or release preparation branch, not a pull request.
     # Note: at some point, the if condition here had an additional '$TRAVIS_PULL_REQUEST = false' condition.
 
+    echo [CI BUILD] Long-living or release preparation branch
+
     openssl aes-256-cbc -in codesigning.asc.enc -out codesigning.asc -d -pass pass:$CODESIGNING_AES_PASSWORD
     gpg --batch --quiet --fast-import codesigning.asc
 
     if [[ $TRAVIS_BRANCH = develop && -n "$SONAR_ORGANIZATION" ]]; then
+        echo [CI BUILD] Analysing with SonarCloud & deploying
         mvn \
             -U \
             org.jacoco:jacoco-maven-plugin:0.7.9:prepare-agent \
@@ -36,6 +43,7 @@ elif [[ $TRAVIS_BRANCH = master || $TRAVIS_BRANCH = develop || $TRAVIS_BRANCH = 
             -DperformRelease=true \
             -P sign
     else
+        echo [CI BUILD] Deploying
         mvn \
             -U \
             deploy \
@@ -44,8 +52,11 @@ elif [[ $TRAVIS_BRANCH = master || $TRAVIS_BRANCH = develop || $TRAVIS_BRANCH = 
     fi
 
 else
+
+    echo [CI BUILD] Arbitrary branch; skipping deployment.
     mvn \
         -U \
         verify \
         -DperformRelease=true
+
 fi
