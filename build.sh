@@ -1,4 +1,8 @@
 #!/usr/bin/env bash
+
+echo [CI BUILD] TRAVIS_PULL_REQUEST=$TRAVIS_PULL_REQUEST
+echo [CI BUILD] TRAVIS_BRANCH=$TRAVIS_BRANCH
+
 wget -q -O $HOME/.m2/settings.xml https://raw.githubusercontent.com/mizool/travis-ci-maven-gitflow/master/settings.xml
 wget -q -O $HOME/.m2/toolchains.xml https://raw.githubusercontent.com/mizool/travis-ci-maven-gitflow/master/toolchains.xml
 
