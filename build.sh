@@ -6,12 +6,12 @@ echo [CI BUILD] TRAVIS_BRANCH=$TRAVIS_BRANCH
 wget -q -O $HOME/.m2/settings.xml https://raw.githubusercontent.com/mizool/travis-ci-maven-gitflow/master/settings.xml
 wget -q -O $HOME/.m2/toolchains.xml https://raw.githubusercontent.com/mizool/travis-ci-maven-gitflow/master/toolchains.xml
 
-if [[ $TRAVIS_PULL_REQUEST = true ]]; then
-    echo [CI BUILD] Pull request  
+if [[ $TRAVIS_PULL_REQUEST -ge 1 ]]; then
+    echo [CI BUILD] Pull request \#$TRAVIS_PULL_REQUEST
 
     # PR builds without configured SonarCloud connection intentionally do nothing.
     if [[ -n "$SONAR_ORGANIZATION" ]]; then
-        echo [CI BUILD] Starting SonarCloud analysis
+        echo [CI BUILD] Starting SonarCloud analysis ...
         mvn \
             -U \
             org.jacoco:jacoco-maven-plugin:0.7.9:prepare-agent \
@@ -27,7 +27,7 @@ if [[ $TRAVIS_PULL_REQUEST = true ]]; then
 elif [[ $TRAVIS_BRANCH = master || $TRAVIS_BRANCH = develop || $TRAVIS_BRANCH = release/* || $TRAVIS_BRANCH = hotfix/* ]]; then
 
     # If we get here, the current build is a regular build of a long-living or release preparation branch, not a pull request.
-    # Note: at some point, the if condition here had an additional '$TRAVIS_PULL_REQUEST = false' condition.
+    # Note that if TRAVIS_PULL_REQUEST is an integer (instead of false), TRAVIS_BRANCH refers to the target branch of the PR.
 
     echo [CI BUILD] Long-living or release preparation branch
 
@@ -35,7 +35,7 @@ elif [[ $TRAVIS_BRANCH = master || $TRAVIS_BRANCH = develop || $TRAVIS_BRANCH = 
     gpg --batch --quiet --fast-import codesigning.asc
 
     if [[ $TRAVIS_BRANCH = develop && -n "$SONAR_ORGANIZATION" ]]; then
-        echo [CI BUILD] Analysing with SonarCloud & deploying
+        echo [CI BUILD] Analysing with SonarCloud & deploying ...
         mvn \
             -U \
             org.jacoco:jacoco-maven-plugin:0.7.9:prepare-agent \
