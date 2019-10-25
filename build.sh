@@ -21,5 +21,17 @@ if [[ ( $TRAVIS_BRANCH = master || $TRAVIS_BRANCH = develop || $TRAVIS_BRANCH = 
         mvn -U deploy -DperformRelease=true -P sign
     fi
 else
-    mvn -U verify -DperformRelease=true
+    if [[ -n "$SONAR_ORGANIZATION" ]]; then
+        mvn \
+            -U \
+            org.jacoco:jacoco-maven-plugin:0.7.9:prepare-agent \
+            verify \
+            org.codehaus.mojo:sonar-maven-plugin:3.3.0.603:sonar \
+            -Dsonar.host.url=https://sonarcloud.io \
+            -Dsonar.organization=$SONAR_ORGANIZATION \
+            -Dsonar.login=$SONAR_LOGIN_TOKEN \
+            -DperformRelease=true
+    else
+        mvn -U verify -DperformRelease=true
+    fi
 fi
