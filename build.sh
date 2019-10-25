@@ -9,9 +9,9 @@ if [[ ( $TRAVIS_BRANCH = master || $TRAVIS_BRANCH = develop || $TRAVIS_BRANCH = 
     if [[ $TRAVIS_BRANCH = develop && -n "$SONAR_ORGANIZATION" ]]; then
         mvn \
             -U \
-            org.jacoco:jacoco-maven-plugin:0.7.9:prepare-agent \
+            org.jacoco:jacoco-maven-plugin:0.8.5:prepare-agent \
             deploy \
-            org.codehaus.mojo:sonar-maven-plugin:3.3.0.603:sonar \
+            org.codehaus.mojo:sonar-maven-plugin:3.7.0.1746:sonar \
             -Dsonar.host.url=https://sonarcloud.io \
             -Dsonar.organization=$SONAR_ORGANIZATION \
             -Dsonar.login=$SONAR_LOGIN_TOKEN \
@@ -24,9 +24,9 @@ else
     if [[ -n "$SONAR_ORGANIZATION" ]]; then
         mvn \
             -U \
-            org.jacoco:jacoco-maven-plugin:0.7.9:prepare-agent \
+            org.jacoco:jacoco-maven-plugin:0.8.5:prepare-agent \
             verify \
-            org.codehaus.mojo:sonar-maven-plugin:3.3.0.603:sonar \
+            org.codehaus.mojo:sonar-maven-plugin:3.7.0.1746:sonar \
             -Dsonar.host.url=https://sonarcloud.io \
             -Dsonar.organization=$SONAR_ORGANIZATION \
             -Dsonar.login=$SONAR_LOGIN_TOKEN \
