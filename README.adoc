@@ -137,9 +137,13 @@ script: "wget -q -O - https://raw.githubusercontent.com/mizool/travis-ci-maven-g
 cache:
   directories:
   - "$HOME/.m2/repository"
+  - "$HOME/.sonar/cache"
 
 git:
   depth: false
+
+addons:
+  sonarcloud:
 ----
 +
 . Place your `codesigning.asc.enc` into the root of your repository (see <<Creating a codesigning certificate>> if
