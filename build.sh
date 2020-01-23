@@ -7,6 +7,8 @@ if [[ ( $TRAVIS_BRANCH = master || $TRAVIS_BRANCH = develop || $TRAVIS_BRANCH = 
     gpg --batch --quiet --fast-import codesigning.asc
 
     if [[ $TRAVIS_BRANCH = develop && -n "$SONAR_ORGANIZATION" ]]; then
+        # Sonar fails if a source folder is missing. This is a workaround for the additional sql source folder.
+        find -name "pom.xml" -type f -execdir mkdir -p src/main/sql \;
         mvn \
             -U \
             org.jacoco:jacoco-maven-plugin:0.8.5:prepare-agent \
@@ -15,6 +17,7 @@ if [[ ( $TRAVIS_BRANCH = master || $TRAVIS_BRANCH = develop || $TRAVIS_BRANCH = 
             -Dsonar.host.url=https://sonarcloud.io \
             -Dsonar.organization=$SONAR_ORGANIZATION \
             -Dsonar.login=$SONAR_LOGIN_TOKEN \
+            -Dsonar.sources=pom.xml,src/main/java,src/main/sql \
             -DperformRelease=true \
             -P sign
     else
@@ -22,6 +25,8 @@ if [[ ( $TRAVIS_BRANCH = master || $TRAVIS_BRANCH = develop || $TRAVIS_BRANCH = 
     fi
 else
     if [[ -n "$SONAR_ORGANIZATION" ]]; then
+        # Sonar fails if a source folder is missing. This is a workaround for the additional sql source folder.
+        find -name "pom.xml" -type f -execdir mkdir -p src/main/sql \;
         mvn \
             -U \
             org.jacoco:jacoco-maven-plugin:0.8.5:prepare-agent \
@@ -30,6 +35,7 @@ else
             -Dsonar.host.url=https://sonarcloud.io \
             -Dsonar.organization=$SONAR_ORGANIZATION \
             -Dsonar.login=$SONAR_LOGIN_TOKEN \
+            -Dsonar.sources=pom.xml,src/main/java,src/main/sql \
             -DperformRelease=true
     else
         mvn -U verify -DperformRelease=true
