@@ -9,6 +9,10 @@ if [[ ( $TRAVIS_BRANCH = master || $TRAVIS_BRANCH = develop || $TRAVIS_BRANCH = 
     if [[ $TRAVIS_BRANCH = develop && -n "$SONAR_ORGANIZATION" ]]; then
         # Sonar fails if a source folder is missing. This is a workaround for the additional sql source folder.
         find -name "pom.xml" -type f -execdir mkdir -p src/main/sql \;
+
+        # Also, sonar now fails if the src/main/java folder is missing. Looks like "simply adding things to sonar.sources is a bad idea.
+        find -name "pom.xml" -type f -execdir mkdir -p src/main/java \;
+
         mvn \
             -U \
             org.jacoco:jacoco-maven-plugin:0.8.5:prepare-agent \
@@ -27,6 +31,10 @@ else
     if [[ -n "$SONAR_ORGANIZATION" ]]; then
         # Sonar fails if a source folder is missing. This is a workaround for the additional sql source folder.
         find -name "pom.xml" -type f -execdir mkdir -p src/main/sql \;
+
+        # Also, sonar now fails if the src/main/java folder is missing. Looks like "simply adding things to sonar.sources is a bad idea.
+        find -name "pom.xml" -type f -execdir mkdir -p src/main/java \;
+
         mvn \
             -U \
             org.jacoco:jacoco-maven-plugin:0.8.5:prepare-agent \
