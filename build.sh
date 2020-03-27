@@ -17,6 +17,7 @@ if [[ ( $TRAVIS_BRANCH = master || $TRAVIS_BRANCH = develop || $TRAVIS_BRANCH = 
             -U \
             org.jacoco:jacoco-maven-plugin:0.8.5:prepare-agent \
             deploy \
+            org.jacoco:jacoco-maven-plugin:0.8.5:report \
             org.codehaus.mojo:sonar-maven-plugin:3.7.0.1746:sonar \
             -Dsonar.host.url=https://sonarcloud.io \
             -Dsonar.organization=$SONAR_ORGANIZATION \
@@ -39,6 +40,7 @@ else
             -U \
             org.jacoco:jacoco-maven-plugin:0.8.5:prepare-agent \
             verify \
+            org.jacoco:jacoco-maven-plugin:0.8.5:report \
             org.codehaus.mojo:sonar-maven-plugin:3.7.0.1746:sonar \
             -Dsonar.host.url=https://sonarcloud.io \
             -Dsonar.organization=$SONAR_ORGANIZATION \
