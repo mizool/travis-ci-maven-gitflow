@@ -23,6 +23,7 @@ if [[ ( $TRAVIS_BRANCH = master || $TRAVIS_BRANCH = develop || $TRAVIS_BRANCH = 
             -Dsonar.organization=$SONAR_ORGANIZATION \
             -Dsonar.login=$SONAR_LOGIN_TOKEN \
             -Dsonar.sources=pom.xml,src/main/java,src/main/sql \
+            -Dsonar.branch.name=$TRAVIS_BRANCH \
             -DperformRelease=true \
             -P sign
     else
@@ -46,6 +47,7 @@ else
             -Dsonar.organization=$SONAR_ORGANIZATION \
             -Dsonar.login=$SONAR_LOGIN_TOKEN \
             -Dsonar.sources=pom.xml,src/main/java,src/main/sql \
+            -Dsonar.branch.name=$TRAVIS_BRANCH \
             -DperformRelease=true
     else
         mvn -U verify -DperformRelease=true
